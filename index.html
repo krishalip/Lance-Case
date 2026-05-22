@@ -56,7 +56,9 @@
     display: grid;
     grid-template-columns: 260px 1fr;
     min-height: 100vh;
+    transition: grid-template-columns 0.22s cubic-bezier(0.4,0,0.2,1);
   }
+  .case-shell.nav-collapsed { grid-template-columns: 0px 1fr; }
 
   /* ── LEFT NAV ── */
   .case-nav {
@@ -66,11 +68,37 @@
     position: sticky;
     top: 0;
     height: 100vh;
-    overflow-y: auto;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     border-right: 1px solid var(--border);
+    transition: padding 0.22s ease;
+    min-width: 0;
   }
+  .case-nav.collapsed { padding: 0; }
+
+  /* Nav toggle button */
+  .nav-toggle {
+    position: fixed;
+    top: 20px;
+    left: 234px;
+    width: 24px;
+    height: 24px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 200;
+    color: var(--snow-40);
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: left 0.22s cubic-bezier(0.4,0,0.2,1), color 0.15s;
+    line-height: 1;
+  }
+  .nav-toggle:hover { color: var(--snow); border-color: var(--border-2); }
+  .nav-toggle.collapsed { left: 8px; }
 
   .case-nav-logo {
     font-family: var(--serif);
@@ -1750,6 +1778,8 @@
 </head>
 <body>
 
+<button class="nav-toggle" id="nav-toggle" onclick="toggleNav()" title="Toggle navigation">‹</button>
+
 <div class="case-shell">
 
   <!-- LEFT NAV -->
@@ -3134,6 +3164,18 @@
 <script>
   const SECTIONS = 10;
   let current = 0;
+
+  function toggleNav() {
+    const shell = document.querySelector('.case-shell');
+    const nav = document.querySelector('.case-nav');
+    const btn = document.getElementById('nav-toggle');
+    const footer = document.querySelector('.case-footer');
+    const collapsed = shell.classList.toggle('nav-collapsed');
+    nav.classList.toggle('collapsed', collapsed);
+    btn.classList.toggle('collapsed', collapsed);
+    btn.textContent = collapsed ? '›' : '‹';
+    if (footer) footer.style.left = collapsed ? '0px' : '260px';
+  }
   let currentReviewIdx = 0;
 
   function goTo(n) {
