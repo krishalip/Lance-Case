@@ -181,10 +181,112 @@
 
   /* ── RIGHT CONTENT ── */
   .case-content { overflow-y: auto; background: var(--bg); }
-  .case-footer { position: fixed; bottom: 0; right: 0; left: var(--nav-w, 260px); padding: 8px 48px; font-family: var(--mono); font-size: 9px; color: var(--snow-20); letter-spacing: 0.06em; pointer-events: none; z-index: 10; }
+  .case-footer { position: fixed; bottom: 0; right: 0; left: 260px; padding: 8px 48px; font-family: var(--mono); font-size: 9px; color: var(--snow-20); letter-spacing: 0.06em; pointer-events: none; z-index: 10; transition: left 0.22s cubic-bezier(0.4,0,0.2,1); }
+
+  /* Nav overlay backdrop (mobile) */
+  .nav-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 250; }
+  .nav-overlay.active { display: block; }
 
   .section { display: none; }
   .section.active { display: block; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+
+    /* Shell: collapse grid to single column */
+    .case-shell { grid-template-columns: 1fr !important; }
+
+    /* Nav: slide-in overlay */
+    .case-nav {
+      position: fixed;
+      left: -260px;
+      top: 0;
+      height: 100vh;
+      z-index: 300;
+      transition: left 0.22s cubic-bezier(0.4,0,0.2,1), padding 0.22s ease;
+      overflow-y: auto;
+    }
+    .case-nav.mobile-open { left: 0; padding: 32px 20px; }
+    .case-nav.collapsed { left: -260px; padding: 0; }
+
+    /* Toggle button: always top-left */
+    .nav-toggle { left: 8px !important; top: 12px; }
+
+    /* Footer: full width */
+    .case-footer { left: 0 !important; padding: 8px 20px; }
+
+    /* Section padding */
+    .hero-section { padding: 48px 20px 32px; }
+    .content-block { padding: 28px 20px; }
+    h1.section-title { font-size: 26px; }
+    h2.block-title { font-size: 20px; }
+    .section-lead { font-size: 14px; }
+
+    /* Stat strip: stack */
+    .stat-strip { grid-template-columns: 1fr; }
+    .stat-block { padding: 18px 20px; }
+    .stat-num { font-size: 28px; }
+
+    /* Journey map: 2 columns then wrap */
+    .journey-map { grid-template-columns: repeat(2, 1fr); }
+
+    /* Feature grid: single column */
+    .feature-grid { grid-template-columns: 1fr; }
+
+    /* Persona card: stack */
+    .persona-card { flex-direction: column; }
+    .persona-grid { grid-template-columns: 1fr; }
+
+    /* Roadmap: stack */
+    .roadmap { grid-template-columns: 1fr; }
+
+    /* Risk grid: single column */
+    .risk-grid { grid-template-columns: 1fr; }
+
+    /* Metrics grid: single column */
+    .metrics-grid { grid-template-columns: 1fr; }
+
+    /* Dollar rows: stack figure above text */
+    .dollar-row { flex-direction: column; gap: 4px; }
+    .dollar-fig { font-size: 26px; min-width: unset; }
+
+    /* Comp table: scrollable */
+    .comp-table { font-size: 11px; }
+    .comp-table th:first-child { width: 110px; }
+    .comp-table td, .comp-table th { padding: 8px 10px; }
+
+    /* Phone prototype: center and scale down slightly */
+    .proto-outer { display: flex; justify-content: center; overflow: hidden; }
+    .phone-frame { transform: scale(0.88); transform-origin: top center; margin-bottom: -60px; }
+
+    /* Guest journey */
+    .gj-track { flex-wrap: wrap; gap: 4px; }
+    .gj-box { flex: 1 1 28%; }
+    .gj-conn { display: none; }
+
+    /* TL;DR list */
+    .tldr-item { flex-direction: column; gap: 6px; }
+    .tldr-q-num { min-width: unset; }
+
+    /* Problem blocks */
+    .problem-block { flex-direction: column; gap: 6px; }
+
+    /* JTBD */
+    .jtbd-item { flex-direction: column; gap: 4px; }
+
+    /* Channels grid */
+    .channels-grid { grid-template-columns: 1fr 1fr; }
+
+    /* Nav prev/next */
+    .nav-prev-next { display: flex; gap: 8px; }
+  }
+
+  @media (max-width: 420px) {
+    h1.section-title { font-size: 22px; }
+    .phone-frame { transform: scale(0.78); transform-origin: top center; margin-bottom: -100px; }
+    .channels-grid { grid-template-columns: 1fr; }
+    .journey-map { grid-template-columns: 1fr; }
+  }
 
   /* ── HERO ── */
   .hero-section {
@@ -1779,6 +1881,7 @@
 <body>
 
 <button class="nav-toggle" id="nav-toggle" onclick="toggleNav()" title="Toggle navigation">‹</button>
+<div class="nav-overlay" id="nav-overlay" onclick="toggleNav()"></div>
 
 <div class="case-shell">
 
@@ -3166,16 +3269,26 @@
   let current = 0;
 
   function toggleNav() {
+    const isMobile = window.innerWidth <= 768;
     const shell = document.querySelector('.case-shell');
     const nav = document.querySelector('.case-nav');
     const btn = document.getElementById('nav-toggle');
     const footer = document.querySelector('.case-footer');
-    const collapsed = shell.classList.toggle('nav-collapsed');
-    nav.classList.toggle('collapsed', collapsed);
-    btn.classList.toggle('collapsed', collapsed);
-    btn.textContent = collapsed ? '›' : '‹';
-    if (footer) footer.style.left = collapsed ? '0px' : '260px';
+    const overlay = document.getElementById('nav-overlay');
+
+    if (isMobile) {
+      const open = nav.classList.toggle('mobile-open');
+      if (overlay) overlay.classList.toggle('active', open);
+      btn.textContent = open ? '✕' : '☰';
+    } else {
+      const collapsed = shell.classList.toggle('nav-collapsed');
+      nav.classList.toggle('collapsed', collapsed);
+      btn.classList.toggle('collapsed', collapsed);
+      btn.textContent = collapsed ? '›' : '‹';
+      if (footer) footer.style.left = collapsed ? '0px' : '260px';
+    }
   }
+
   let currentReviewIdx = 0;
 
   function goTo(n) {
@@ -3188,6 +3301,12 @@
     document.getElementById('btn-prev').disabled = current === 0;
     document.getElementById('btn-next').disabled = current === SECTIONS - 1;
     document.querySelector('.case-content').scrollTop = 0;
+    if (window.innerWidth <= 768) {
+      document.querySelector('.case-nav')?.classList.remove('mobile-open');
+      document.getElementById('nav-overlay')?.classList.remove('active');
+      const btn = document.getElementById('nav-toggle');
+      if (btn) btn.textContent = '☰';
+    }
   }
 
   function navigate(dir) {
@@ -3571,6 +3690,11 @@
   }
 
   function toggleTheme(row) { row.classList.toggle('open'); }
+
+  if (window.innerWidth <= 768) {
+    const btn = document.getElementById('nav-toggle');
+    if (btn) btn.textContent = '☰';
+  }
 
   document.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') navigate(1);
